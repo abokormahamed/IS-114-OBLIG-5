@@ -1,26 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h1>Din Søknad</h1>
-
-  {% if available_spots > 0 %}
-    <h2>TILBUD: Du har fått plass i barnehagen!</h2>
-    {% if priority_rights %}
-      <p>Du har fortrinnsrett, og har blitt prioritert.</p>
-    {% else %}
-      <p>Det er ledige plasser, og din søknad er godkjent.</p>
-    {% endif %}
-  {% else %}
-    <h2>AVSLAG: Dessverre, det er ingen ledige plasser.</h2>
-    <p>Din søknad er avslått.</p>
-  {% endif %}
-
-  <h3>Detaljer om søknaden:</h3>
-  <table border=1>
-    {% for k, v in data.items() %}
-      <tr>
-        <th>{{ k }}</th>
-        <td>{{ v }}</td>
-      </tr>
-    {% endfor %}
-  </table>
+<h2>Resultat av søknad</h2>
+{% if resultat == "TILBUD" %}
+    <p>Gratulerer! Du har fått tilbud om plass i barnehagen.</p>
+{% else %}
+    <p>Beklager, det er for øyeblikket ingen ledige plasser. Søknaden er avslått.</p>
+{% endif %}
 {% endblock %}

@@ -55,6 +55,67 @@ def insert_barn(b):
     
     return barn
 
+
+import pandas as pd
+
+def insert_soknad(form_data):
+    global soknad, barnehage
+    
+    excel_path = r'C:\oblig5\is114-tema05\barnehage\kgdata.xlsx'
+    
+    new_id = 1 if soknad.empty else soknad['sok_id'].max() + 1
+    
+    valgt_barnehage = form_data.get('liste_over_barnehager_prioritert_5')
+    try:
+        ledige_plasser = barnehage.loc[
+            barnehage['barnehage_navn'] == valgt_barnehage, 
+            'barnehage_ledige_plasser'
+        ].iloc[0]
+    except:
+        ledige_plasser = 0  # Hvis barnehagen ikke finnes
+    
+    status = 1 if ledige_plasser > 0 else 0
+    
+    new_row = pd.DataFrame([[
+        new_id,
+        form_data.get('navn_forelder_1'),
+        form_data.get('navn_forelder_2', ''),
+        form_data.get('personnummer_barnet_1'),
+        form_data.get('fortrinnsrett_barnevern') == 'on',
+        form_data.get('fortrinnsrett_sykdom_i_familien') == 'on',
+        form_data.get('fortrinnsrett_sykdome_paa_barnet') == 'on',
+        form_data.get('fortrinssrett_annet', ''),
+        valgt_barnehage,
+        form_data.get('har_sosken_som_gaar_i_barnehagen') == 'on',
+        form_data.get('tidspunkt_for_oppstart'),
+        form_data.get('brutto_inntekt_husholdning'),
+        status  # Legg til status
+    ]], columns=list(soknad.columns) + ['status'])
+
+    #Oppdater
+    soknad = pd.concat([new_row, soknad], ignore_index=True)
+    
+    if status == 1:
+        barnehage.loc[
+            barnehage['barnehage_navn'] == valgt_barnehage, 
+            'barnehage_ledige_plasser'
+        ] -= 1
+    
+    # Lagre endringene
+    try:
+        with pd.ExcelWriter(excel_path, mode='a', if_sheet_exists='replace') as writer:
+            soknad.to_excel(writer, sheet_name='soknad', index=False)
+            barnehage.to_excel(writer, sheet_name='barnehage', index=False)
+        print("Data er lagret!")
+        return status
+    except Exception as e:
+        print(f"Feil ved lagring til Excel: {e}")
+        return 0
+
+
+
+
+'''
 def insert_soknad(s):
     """[sok_id, foresatt_1, foresatt_2, barn_1, fr_barnevern, fr_sykd_familie,
     fr_sykd_barn, fr_annet, barnehager_prioritert, sosken__i_barnehagen,
@@ -85,7 +146,7 @@ def insert_soknad(s):
                 columns=soknad.columns), soknad], ignore_index=True)
     
     return soknad
-
+'''
 # ---------------------------
 # Read (select)
 
@@ -115,10 +176,44 @@ def select_barn(b_pnr):
     
     
 # --- Skriv kode for select_soknad her
-
+'''
+"""Hente fra databasen"""
+    
+    return soknad.apply(lambda r: {
+        'navn_foresatt': r['foresatt_1'],  
+        'adresse': r['foresatt_adresse'],
+        'telefon': r['foresatt_tlf'],
+        'barnehage_navn': r['barnehage_prioritert'],  
+        'status': "TILBUD" if r['status'] == 1 else "AVSLAG"  
+    }, axis=1).to_list()
+'''
 
 # ------------------
 # Update
+
+def select_all_soeknader():
+    try:
+        excel_path = r'C:\oblig5\is114-tema05\barnehage\kgdata.xlsx'
+        
+        soknad_data = pd.read_excel(excel_path, sheet_name='soknad')
+        
+        if 'status' not in soknad_data.columns:
+            soknad_data['status'] = 0  # Standard verdi er avslag
+        
+        soeknader = []
+        for _, row in soknad_data.iterrows():
+            soeknader.append({
+                'soeknadsnummer': row['sok_id'],
+                'navn_foresatt': row['foresatt_1'],
+                'adresse': row.get('adresse_forelder_1', 'Ikke oppgitt'),
+                'barnehage_navn': row['barnehager_prioritert'],
+                'status': "TILBUD" if row.get('status', 0) == 1 else "AVSLAG"
+            })
+        
+        return soeknader
+    except Exception as e:
+        print(f"Feil ved lesing av søknader: {e}")
+        return []
 
 
 # ------------------
@@ -203,3 +298,4 @@ def test_df_to_object_list():
                              r['barnehage_antall_plasser'],
                              r['barnehage_ledige_plasser']),
          axis=1).to_list()[0].barnehage_navn == "Sunshine Preschool"
+    
