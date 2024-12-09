@@ -3,7 +3,7 @@ import pandas as pd
 
 
 
-kgdata = pd.ExcelFile(r'C:\oblig5\is114-tema05\barnehage\kgdata.xlsx')
+kgdata = pd.ExcelFile("/Users/abokormahamed/Desktop/IS-114/OBLIG-5/IS-114/barnehage/kgdata.xlsx")
 barnehage = pd.read_excel(kgdata, 'barnehage', index_col=0)
 forelder = pd.read_excel(kgdata, 'foresatt', index_col=0)
 barn = pd.read_excel(kgdata, 'barn', index_col=0)
@@ -12,7 +12,7 @@ soknad = pd.read_excel(kgdata, 'soknad', index_col=0)
 from openpyxl import load_workbook
 
 def lagre_til_excel(data):
-    filsti = r"C:\oblig5\is114-tema05\barnehage\kgdata.xlsx"
+    filsti = "/Users/abokormahamed/Desktop/IS-114/OBLIG-5/IS-114/barnehage/kgdata.xlsx"
     
     # Prøv å laste inn eksisterende arbeidsbok, ellers opprett en ny
     try:
